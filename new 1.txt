@@ -1,0 +1,105 @@
+<?php
+include("header.php");
+if(isset($_POST['submit']))
+{
+	$filename= rand() . $_FILES['imgpath']['name'] ; 
+	move_uploaded_file($_FILES['imgpath']['tmp_name'],'imgproducts/'.$filename);
+	
+	if(isset($_GET['editid']))
+	{
+		$sql = "UPDATE furnitureimages SET furnitureid='$_GET[furid]' ,description='$_POST[description]',status='$_POST[status]' WHERE furnitureimgid='$_GET[editid]'";
+		mysqli_query($con,$sql);
+		echo mysqli_error($con);
+		if(mysqli_affected_rows($con) == 1)
+		{
+			echo "<script>alert('Furniture Image record Updated successfully...');</script>";
+		}
+	}
+	else
+	{
+		$sql = "INSERT INTO furnitureimages(furnitureid,imgpath,description,status) VALUES ('$_GET[furid]','$filename','$_POST[description]','$_POST[status]')";
+		mysqli_query($con,$sql);
+		if(mysqli_affected_rows($con) == 1)
+		{
+			echo "<script>alert('Furniture image record inserted successfully...');</script>";
+		}
+		else
+		{
+			echo mysqli_error();
+		}
+	}
+}
+if(isset($_GET['editid']))
+{
+	$sqledit = "SELECT * FROM furnitureimages WHERE furnitureimgid='$_GET[editid]'";
+	$qsqledit  = mysqli_query($con,$sqledit);
+	$rsedit = mysqli_fetch_array($qsqledit);
+}
+
+?>
+
+ 
+<!--/contact-->
+<div class="w3-contact" id="contact">
+<div class="content-w3ls agileits w3 wthree w3-agile w3-agileits agileinfo agile w3-label">
+	<form action="" method="post" class="form-agileits" enctype='multipart/form-data'>
+		<h3 class="w3-contact-form-head">Upload Furniture Images</h3>			
+		</br> <label>Upload Image</label><br>
+		<input type="file"  id="imgpath" name="imgpath" placeholder="image path"   value="<?php echo $rsedit['imgpath']; ?>"/><br>
+		
+		<label>Description </label><br>
+		<textarea name="description"  placeholder="description"><?php echo $rsedit['description']; ?></textarea>
+		<br>
+			<label>Status</label><br>
+		<select class="form-data" name="status" id="status" >
+			<option value=''>Select</option>
+			<option value='Primary'>Primary</option>
+			<option value='Active'>Active</option>
+			<option value='Inactive'>Inactive</option>
+		</select>
+		<input type="submit" id="submit" name="submit" class="sign-in" value="Submit">
+	</form>
+	
+	
+	<table  id="example" class="table table-striped table-bordered dataTable no-footer" cellspacing="0" width="100%" role="grid" aria-describedby="example_info" style="width: 100%;">
+	<thead>
+		<tr>
+			<th>Image path</th>
+			<th>Furniture</th>
+			<th>Description</th>
+			<th>Status</th>
+			<th>Active</th>
+		</tr>
+	</thead>
+	<tbody>
+	<?php
+	$sql  = "SELECT * FROM furnitureimages LEFT JOIN furniture  ON furnitureimages.furnitureid=furniture.furnitureid";
+	$qsql = mysqli_query($con,$sql);
+	while($rs = mysqli_fetch_array($qsql))
+	{
+		if(file_exists("imgproducts/".$rs['imgpath']))
+		{
+			$filename=  "imgproducts/".$rs['imgpath'];
+		}
+		else
+		{
+			$filename=  "images/No_Image_Available.jpg";
+		}
+		echo "<tr>
+		    <td><img src='$filename' style='width:150px;height:150px;'/></td>
+			<td>$rs[title]</td>
+			<td>$rs[description]</td>
+			<td>$rs[status]</td>
+			<td><a href='furnitureimages.php?editid=$rs[furnitureimgid]'> Edit </a> |  <a href='viewfurimage.php?delid=$rs[furnitureimgid]' onclick='return confirmmsg()'> Delete </a></td>
+		</tr>";
+	}
+	?>
+	</tbody>
+</table>
+</div>
+</div>
+<!--//contact-->
+
+<?php
+include("footer.php");
+?>
